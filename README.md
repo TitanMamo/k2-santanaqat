@@ -115,9 +115,10 @@ released file, so the map can be re-derived instead of trusted.
 | `README.md` | this file |
 
 Companion repositories and records:
-- **Runtime PR** (the reference implementation): branch `k2-t16` of
-  [TitanMamo/ik_llama.cpp](https://github.com/TitanMamo/ik_llama.cpp) — GGML op + CPU reference, CUDA
-  GEMV / f16-MMA prefill / MoE kernels, loader, graph; see `PR_DESCRIPTION.md` in this repository.
+- **Runtime PR** (the reference implementation): **[ikawrakow/ik_llama.cpp#2762](https://github.com/ikawrakow/ik_llama.cpp/pull/2762)**,
+  from branch `k2-t16` of [TitanMamo/ik_llama.cpp](https://github.com/TitanMamo/ik_llama.cpp) — GGML op +
+  CPU reference, CUDA GEMV / f16-MMA prefill / MoE kernels, loader, graph (26 files, +2986/−97); the full
+  description is `PR_DESCRIPTION.md` in this repository.
 - **Progress/lessons repository** (failures, wins, exact reproduction of the QAT series):
   [TitanMamo/qwen25-q3-qat](https://github.com/TitanMamo/qwen25-q3-qat).
 - **Artifact**: [TitanMamo10/Qwen2.5-1.5B-K2-3.34bpw](https://huggingface.co/TitanMamo10/Qwen2.5-1.5B-K2-3.34bpw).
