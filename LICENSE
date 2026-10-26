@@ -1,0 +1,9 @@
+This deposit (paper, figures, evidence archive, allocation pipeline and the measurement log) is
+released under the Creative Commons Attribution 4.0 International licence (CC-BY-4.0).
+
+Full text: https://creativecommons.org/licenses/by/4.0/legalcode
+
+The runtime implementation it documents (ik_llama.cpp) is MIT-licensed by its own authors; the
+trellis encoder it builds on (exllamav3) carries its own licence. Nothing here relicenses them.
+
+(c) 2026 Baran Mamo

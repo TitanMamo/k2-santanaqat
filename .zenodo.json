@@ -1,0 +1,39 @@
+{
+  "title": "K2 and SantanaQAT: how far is 3-bit LLM quantization from the rate-distortion bound? A measurement study, and why the last points are unavailable",
+  "description": "<p>We ask a narrow, falsifiable question: can a ~3.3 bit-per-weight (bpw) trellis codec be made near-lossless &mdash; retaining at least 96.5% of the full-precision model's item-level benchmark performance &mdash; by better mathematics or better training, on consumer hardware? We answer with measurements on Qwen2.5-1.5B (1.54B deployed parameters) on a single 12 GB GPU, cross-checked at 3B.</p><p>(i) The ceiling is arithmetic: the coder sits 1.23&ndash;1.32x above the Shannon bound at K=3,4,5,6, approximately constant, so perfect coding is worth about +5 retention points, not the 17 the bar demands; at 3.34 bpw the bar requires an effective weight error 3.8x below the bound.</p><p>(ii) The source offers no exploitable structure: post-rotation weights are white (kurtosis 3.07; spectral AM/GM 1.13&ndash;1.24; residual AM/GM 1.22&ndash;1.38), and an activation-side anisotropy gain of 1.47x in sample collapses to 0.98&ndash;1.02x out of sample.</p><p>(iii) The codec column closes by identification: the trellis is numerically the D8 lattice (0.02723 vs 0.02735); E8 is 1.22x better at entropy-matched rate but only 1.03&ndash;1.10x once a fixed-rate 2^(8R) container is imposed; entropy coding of the stored stream is exactly 1.000x.</p><p>Training saturates: scales-only QAT buys +6.1 points (p = 0.004) for 0.09% of the parameters and 0.77M tokens, then drives perplexity below the full-precision model while coding stays flat; latent training is significantly worse on HellaSwag (p = 0.0139). The residual damage is additive and unlocalisable. What moves the number is rate and scale.</p><p>The release contains the paper (LaTeX and PDF), the three figures, the per-item result files behind every table, and the scripts that produce the tables.</p>",
+  "upload_type": "publication",
+  "publication_type": "preprint",
+  "publication_date": "2026-10-26",
+  "creators": [
+    {
+      "name": "Mamo, Baran"
+    }
+  ],
+  "license": "cc-by-4.0",
+  "access_right": "open",
+  "language": "eng",
+  "keywords": [
+    "quantization-aware training",
+    "trellis-coded quantization",
+    "lattice quantization",
+    "rate-distortion",
+    "LLM compression",
+    "negative results",
+    "reproducibility"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://huggingface.co/TitanMamo10/Qwen2.5-1.5B-K2-3.34bpw",
+      "relation": "isSupplementedBy",
+      "resource_type": "software",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://github.com/TitanMamo/ik_llama.cpp",
+      "relation": "isSupplementedBy",
+      "resource_type": "software",
+      "scheme": "url"
+    }
+  ],
+  "notes": "Per-item evidence is included under evidence/; Appendix B of the paper maps each table to its result file."
+}

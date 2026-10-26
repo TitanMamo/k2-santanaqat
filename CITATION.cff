@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+title: "K2 and SantanaQAT: how far is 3-bit LLM quantization from the rate-distortion bound? A measurement study, and why the last points are unavailable"
+message: "If you use this work, please cite it as below."
+type: report
+authors:
+  - family-names: Mamo
+    given-names: Baran
+version: k2-3.34bpw-v1
+date-released: 2026-10-27
+license: CC-BY-4.0
+abstract: "A 16x16 tile trellis codec (EXL3/QTIP class) at a 3.34 body bits-per-weight, its runtime for ik_llama.cpp, an SC/RCO per-tensor allocation pipeline, a scales-only QAT (SantanaQAT), and the measurements that bound what 3-bit quantization can reach. Includes the per-item evidence behind every table and the exact allocation that produced the released rate map."
+keywords:
+  - quantization
+  - trellis
+  - tcq
+  - llm
+  - qat
+  - gguf

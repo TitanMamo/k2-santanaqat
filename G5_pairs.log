@@ -1,0 +1,12 @@
+pair 1: iq3ks pp=7715 tg=189.0  k2 pp=3168 tg=173.1  iq4ks pp=7785 tg=184.1
+pair 2: iq4ks pp=8098 tg=184.2  k2 pp=3180 tg=174.0  iq3ks pp=8363 tg=189.5
+pair 3: iq3ks pp=8348 tg=189.6  k2 pp=3180 tg=174.0  iq4ks pp=8121 tg=184.5
+pair 4: iq4ks pp=8073 tg=184.4  k2 pp=3188 tg=174.3  iq3ks pp=8366 tg=190.1
+pair 5: iq3ks pp=8372 tg=190.1  k2 pp=3182 tg=174.3  iq4ks pp=8112 tg=184.7
+
+medians (n=5):
+  k2     pp512  3180.3   tg128  174.0
+  iq3ks  pp512  8362.9   tg128  189.6
+  iq4ks  pp512  8098.4   tg128  184.4
+  iq3ks vs k2: pp512 ratio median 2.625 (wins 5/5), tg128 median 1.091 (wins 5/5)
+  iq4ks vs k2: pp512 ratio median 2.547 (wins 5/5), tg128 median 1.060 (wins 5/5)

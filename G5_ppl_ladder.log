@@ -1,0 +1,4 @@
+=== THE paper's protocol: -c 512 --chunks 20, corpus /mnt/Data/qat_k2/wikitext-2-raw/wiki.test.raw ===
+  base-f16       n_ctx=512 = 10.3099 +/- 0.39018
+  k2_ptq_k4min   n_ctx=512 = 10.4966 +/- 0.39909
+  k2_ptq         n_ctx=512 = 10.5894 +/- 0.40039
