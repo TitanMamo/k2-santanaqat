@@ -1,7 +1,7 @@
 # K2 + SantanaQAT — trellis-coded weights at 3.34 bpw
 
-**DOI (concept, always the latest version): [10.5281/zenodo.23678902](https://doi.org/10.5281/zenodo.23678902)**
-· this release: [10.5281/zenodo.23678903](https://doi.org/10.5281/zenodo.23678903)
+**DOI: [10.5281/zenodo.23678902](https://doi.org/10.5281/zenodo.23678902)** (concept DOI — always resolves to the
+latest version; the version you are reading is whatever Zenodo's record shows)
 · runtime PR: [#2762](https://github.com/ikawrakow/ik_llama.cpp/pull/2762)
 · artifact: [TitanMamo10/Qwen2.5-1.5B-K2-3.34bpw](https://huggingface.co/TitanMamo10/Qwen2.5-1.5B-K2-3.34bpw)
 
