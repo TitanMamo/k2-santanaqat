@@ -60,3 +60,18 @@ not the file).
 `k2_pipeline.sh` is the driver **as it was run**, with local absolute paths (`/home/titan/...`,
 `/mnt/Data/...`) baked in. It is included as the exact reproduction record; the generic per-stage
 commands are the ones above. Both Python tools carry `--selftest` (re-run at deposit time: OK).
+
+## Streaming sensitivity measurement (2.2x, bit-identical)
+
+`sc_measure_stream.py` is a rewritten `sc_measure.py` built around suffix replay. It produces the same
+numbers (rho 1.000000, max deviation 0.0000 % on every tensor, identical rate allocation) and runs 2.1-2.2x
+faster; see `SC_STREAM.md` for the implementation, the measurements and the limits.
+
+```bash
+python sc_measure_stream.py -m <model> -t <calibration.txt> -o sc.json \
+    --rows 4 --length 256 --levels 0.30,0.15 --device cuda
+python parity.py reference.json new.json      # verify the claim on your own model
+```
+
+`sc_measure.py` stays the portable reference and the fallback for architectures the streaming version
+does not support (it raises `NotImplementedError` rather than silently measuring something else).
