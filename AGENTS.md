@@ -20,9 +20,12 @@ Do not call the trellis "K2-QAT". Do not call SantanaQAT a fine-tune — it trai
 
 Each 16×16 tile of a weight matrix is a circular `256·K`-bit stream. The payload is a plain `I16` 3-D
 tensor `[16K, out/16, in/16]` with standard strides; the side tensors are `su`/`sv` (F16); a
-block-Hadamard(128) rotation is applied on both sides at encode time. There is **no new `ggml_type`** and
-there must not be one: a tile spans 16 rows, so no payload row is contiguous with a tensor row. The only
-runtime addition is one op (three entry points: dense matmul, MoE id-matmul, embedding gather).
+block-Hadamard(128) rotation is applied on both sides at encode time. There is **no new `ggml_type`**, though one is *possible*: this fork already stores multi-row blocks
+(`IQ3_KS_R16`/`IQ4_KS_R16`/`IQ5_KS_R16` = 16 rows x 32 columns = 512 quants in 204 B, `blck_size` 32,
+`type_size` charged per row; the `*_R4`/`*_R8` types predate them). We kept the payload as a 3-D `I16`
+tensor because its element width *is* the per-tensor rate `K`, and the side scales are per-matrix
+tensors rather than a block header. A port to the R16 pattern is future work, not an impossibility.
+The only runtime addition is one op (dense matmul, MoE id-matmul, embedding gather).
 
 ## 3. Invariants — violating any of these produces plausible garbage, not a crash
 
