@@ -810,11 +810,13 @@ materialising scales is $0.6$\,s; a GGUF rewrite $4$\,s (from $91$\,s before the
 reaches $327.92\pm0.68$ t/s on the $0.5$B seat ($92\%$ of our $357$ t/s gate target and $69\%$ of
 a well-tuned IQ3\_KS build at a lower rate), with CUDA graphs worth $23\%$. On the model this paper
 is about --- $1.5$B at $3.34\bpw$, $722$\,MB of weights per token --- the same kernels deliver
-\textbf{$175.5\pm0.4$ t/s}, i.e.\ $\approx127$\,GB/s and $73\%$ of the $175$\,GB/s isolated GEMV
-ceiling this card reaches.
-In the interleaved 5-pair A/B (order alternating, same model re-quantized with the fork's own types) the
-shipped kernels are 2.55x behind \texttt{IQ4\_KS} and 2.63x behind \texttt{IQ3\_KS} on prefill and
-1.06x / 1.09x behind on decode, 5/5 pairs in both directions --- the honest frame for the kernel limits.
+\textbf{$202.7\pm0.9$ t/s}, i.e.\ $\approx147$\,GB/s and $84\%$ of the $175$\,GB/s isolated GEMV
+ceiling this card reaches (the decode figures here and below are post-\texttt{k2-speed}, twelve kernel
+commits applied after the runtime described above: $174$-$176$\,t/s before them).
+Against the same model re-quantized with the fork's own types, the shipped kernels are $1.54$x behind
+\texttt{IQ3\_KS} and $1.52$x behind \texttt{IQ4\_KS} on prefill (a $34.9\%$ / $34.3\%$ throughput
+deficit, against $61.6\%$ before \texttt{k2-speed}) and $1.06$x / $1.15$x \emph{ahead} on decode ---
+the honest frame for the kernel limits.
 
 Two operational facts we record because they are easy to repeat and each cost us time. First, the
 fast GEMV path was gated behind an environment variable that \emph{defaulted to off} in early builds
