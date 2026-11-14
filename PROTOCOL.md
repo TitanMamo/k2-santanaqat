@@ -43,6 +43,22 @@ the mean ± standard error over the chunks — not the ratio of two aggregate PP
 - Never compare runs whose cache state differs (page cache, expert profile). Freeze or delete the
   learned profile before an A/B.
 
+## 3b. Speed: name the tool, never mix them
+
+Two numbers measured on the same build can differ by 10-15 % purely because of the measurement path:
+
+| tool | what it reports | overhead in the number |
+|---|---|---|
+| `llama-bench` | tg128 / pp512 on a fixed synthetic prompt | minimal; greedy, no sampling, no tokeniser in the loop |
+| `llama-server` `/slots` (`reliable_ab.py`) | `predicted_per_second` / `prompt_per_second` of a real request | sampling, streaming, tokenisation, per-request setup |
+
+Both are legitimate; subtracting one from the other is not. Every speed table in this repository must
+state the tool **per row**, and a before/after must use one tool for both arms.
+
+This is not hypothetical: an earlier revision of the runtime note compared `/slots` 174-176 t/s with
+`llama-bench` 202.7 t/s and reported a "+16 % decode, +76 % prefill" gain that was mostly the tool
+swap. The kernel commits are real; that particular delta was not measured.
+
 ## 4. Hygiene
 
 - **One job at a time.** A five-job compile running beside a reference measurement moved it 1.9 %;
