@@ -22,31 +22,6 @@ measured and did not improve on it.
 **Status:** runtime + encoder shipped and measured; encoder speedups and QATv2 items are explicitly
 listed as open (§7). Nothing in this repository is a projection presented as a measurement.
 
-### v3 (2026-11-14) — protocol correction, real 7B sensitivities, SC fixes
-
-- **Perplexity protocol.** A 20-chunk window scores only 5,100 tokens (1.7 % of `wiki.test.raw`) and
-  over-reads quantisation damage by ~2.3× on Qwen2.5-7B: the same binary and file give **+8.86 % at
-  20 chunks but +3.86 % at 80**. `PROTOCOL.md` now fixes the minimum window, the nats-with-paired-error
-  reporting, and the hygiene rules learned the hard way. Numbers in `measurement-log.md` measured at
-  20 chunks are historical and are marked as such.
-- **A real 7B sensitivity measurement** (`pipeline/qwen7b_3.18bpw/sc_body_7b_native.json`, f16, cloud
-  A10, `transformers 5.5.0`): per-tensor S comes out **0.24× the 1.5B values** that the allocation had
-  been borrowing, and the **depth profile inverts** — early layers 0.10–0.20×, the last layers
-  1.0–1.7×. Consequence: the borrowed S over-weighted attention; at the same **3.18 body bpw** the
-  real-S allocation predicts `KLD 0.0665` against `0.0757` for the shipped 3.354 bpw pack.
-- **`sc_measure_stream.py`**: fixed the async KL scaling (`pool.submit(...) * B` multiplies a `Future`
-  → `TypeError`, triggered by `--row-batch all` and by `--rows 1`), and made the replay loop accept
-  both decoder-layer return conventions (a 1-tuple in `transformers` ≤ 4.46, a tensor in 5.x). The
-  `--device cpu` path runs.
-- **`sc_alloc.py`**: `o_proj` added to the attention group (`out_proj` is not a Qwen2 name, so
-  `--att-max` silently never capped the attention-output matrix) and the exchange-repair loop now
-  honours the per-group cap.
-- **New tools**: `pipeline/ppl_ladder.sh` (the protocol as a script), `pipeline/modal_sc_7b.py`
-  (a 7B native SC on a rented A10 for ~$0.03, so the measurement is reproducible without a 24 GB
-  card), `pipeline/k2_exl3_dequant.py` (folds the runtime expression into plain weights — the
-  faithfulness check: 6.7833 folded vs 6.7842 pack, **+0.039 %**), `pipeline/k2_tensor_audit.py`
-  (per-tensor rfn against the HF weights).
-
 ---
 
 ## 1. Why you would use it
