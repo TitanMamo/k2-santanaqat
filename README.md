@@ -32,8 +32,8 @@ At a **3.34 body bits-per-weight** budget, on one 12 GB RTX 3060, Qwen2.5-1.5B:
 |---|---|---|
 | **quality** — PTQ pack | perplexity **10.5894**, coding **73.6 %** | F16 10.3099 · `IQ3_KS` **13.2312** (3.44 bpw) · `IQ4_KS` 10.9485 (4.54 bpw) |
 | **quality** — SantanaQAT pack | perplexity **10.2886**, coding **79.7 %**, HellaSwag **87.3 %**, ARC **87.0** (100 %), probes **88.8** (106 %), GSM8K **52.0 %** (104 %) | +6.1 coding points over the PTQ pack, for 0.09 % of trainable parameters |
-| **decode** | **202.7 ± 0.9 t/s** (warmup + 5 reps, see `K2_RUNTIME_SPEEDUPS.md`) | **6.0 % ahead** of `IQ3_KS` (191.2) and **15 % ahead** of `IQ4_KS` (177.0), reading ~21 % fewer body bits (3.34 vs ~4.25 bpw; on disk the file is 6.22 bpw) |
-| **prefill** | **5,660 ± 475 t/s** (warmup + 5 reps) | **34.9 % behind** `IQ3_KS` (8,700) and **34.3 % behind** `IQ4_KS` (8,614) — down from 61.6 % before the `k2-speed` branch; see §4 and `K2_RUNTIME_SPEEDUPS.md` |
+| **decode** | **202.7 ± 0.9 t/s** (`llama-bench` tg128, warmup + 5 reps) | **6.0 % ahead** of `IQ3_KS` (191.2) and **15 % ahead** of `IQ4_KS` (177.0) — same tool, same session. The earlier 174–176 t/s was read from the server's `/slots` counters and is **not** comparable to a `llama-bench` number |
+| **prefill** | **5,660 ± 475 t/s** (`llama-bench` pp512, warmup + 5 reps) | **34.9 % behind** `IQ3_KS` (8,700) and **34.3 % behind** `IQ4_KS` (8,614), same tool and session — see §4 and `K2_RUNTIME_SPEEDUPS.md` |
 | **footprint** | **1198 MB** file (849.6 MB with the trellis embedding) | runs fully offloaded in 12 GB VRAM; CPU path also works (AVX2 2.98 t/s vs scalar 0.75) |
 | **encode cost** | **19.4 min** for a 1.5B | plus a **10 min** **SantanaQAT** run (1.31M trainable params = 0.09 %), i.e. a full artifact in ~30 min on one card |
 

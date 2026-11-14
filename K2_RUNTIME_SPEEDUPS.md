@@ -50,25 +50,33 @@ verified.
 | `IQ3_KS` | 4,797 ± 364 | 123.9 ± 0.4 |
 | `IQ4_KS` | 4,799 ± 477 | 122.6 ± 0.2 |
 
-## What changed against the published numbers
+## Protocol warning — the two numbers in print are not comparable
 
-| | before (`k2-t16`) | **now (`k2-speed`)** |
-|---|---:|---:|
-| 1.5B prefill | 3,180–3,248 t/s | **5,660** (+76 %) |
-| 1.5B decode | 174–176 t/s | **202.7** (+16 %) |
-| 1.5B prefill vs `IQ3_KS` | **61.6 % behind** | **34.9 % behind** |
-| 1.5B decode vs `IQ3_KS` | 7.7 % behind | **6.0 % ahead** |
-| 1.5B decode vs `IQ4_KS` | 5.1 % behind | **15.0 % ahead** |
-| 3B prefill | 1,781 t/s | **3,132** (+76 %) |
-| 3B decode | 93.0 t/s | **113.7** (+22 %) |
-| 3B prefill vs `IQ3_KS` | 62.0 % behind | **34.7 % behind** |
-| 3B decode vs `IQ3_KS` | 24.8 % behind | **8.2 % behind** |
+The figures published before this note (decode **174–176 t/s**, prefill **3.18–3.25k**) were read
+from **`llama-server`'s `/slots` counters** (`predicted_per_second` / `prompt_per_second`, via
+`qat_tools/reliable_ab.py`). Everything in this document is **`llama-bench`**. The two paths differ
+by sampling/tokenisation overhead, so a `llama-bench` figure and a `/slots` figure must never be
+subtracted from one another — the earlier draft of this file did exactly that and its "+76 % prefill"
+was an artefact of the tool swap, not of the kernels.
 
-The deficit is quoted as `1 − K2/IQ`, i.e. *how much slower K2 is*, not as the ratio (a "1.45×"
-ratio is a 31 % deficit — the two must not be mixed).
+**What is solid** (one tool, one session, same artifact):
 
-Prefill's spread on this box is large (sd 8-15 % between runs), so the IQ gap is reported to the
-nearest point and the absolute numbers carry their standard deviations. Decode is tight (sd < 0.5 %).
+| | K2 | `IQ3_KS` | `IQ4_KS` | verdict |
+|---|---:|---:|---:|---|
+| 1.5B prefill pp512 | 5,660 | 8,700 | 8,614 | 34.9 % / 34.3 % behind |
+| 1.5B decode tg128 | 202.7 | 191.2 | 177.0 | 6.0 % / 15.0 % ahead |
+| 3B prefill pp512 | 3,132 | 4,797 | 4,799 | 34.7 % behind |
+| 3B decode tg128 | 113.7 | 123.9 | 122.6 | 8.2 % behind |
+
+**What is pending**: a like-for-like before/after. The pre-`k2-speed` binary is still on disk
+(`ik_llama-k2/build-cuda/bin/llama-bench`, built 2026-10-26), so the A/B is one command per arm once
+the GPU is free:
+
+```bash
+# old build vs new, same tool, same models, same session
+build-cuda/bin/llama-bench -m <pack> -p 512 -n 128 -r 5 -ngl 99 -t 6
+build-spark/bin/llama-bench -m <pack> -p 512 -n 128 -r 5 -ngl 99 -t 6
+```
 
 ## Where the remaining prefill gap comes from
 

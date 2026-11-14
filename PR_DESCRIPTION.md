@@ -19,12 +19,12 @@ It also adds a small CPU reference implementation so the op is testable without 
 | model | | K2 | fork reference | note |
 |---|---|---|---|---|
 | **Qwen2.5-1.5B**, 3.34 body bpw | perplexity | **10.5894** | `IQ3_KS` 13.2312 (3.44 bpw) · `IQ4_KS` 10.9485 (4.54 bpw) | same 20-chunk protocol |
-| | decode | **202.7 t/s** | `IQ3_KS` 191.2 · `IQ4_KS` 177.0 | **6.0 % ahead** of `IQ3_KS`, 15.0 % ahead of `IQ4_KS` |
-| | prefill | **5,660 t/s** | `IQ3_KS` 8700 · `IQ4_KS` 8614 | **34.9 % / 34.3 % behind** (was 61.6 %; see `K2_RUNTIME_SPEEDUPS.md`) |
+| | decode | **202.7 t/s** (`llama-bench` tg128) | `IQ3_KS` 191.2 · `IQ4_KS` 177.0 (same tool) | **6.0 % ahead** of `IQ3_KS`, 15.0 % ahead of `IQ4_KS` |
+| | prefill | **5,660 t/s** (`llama-bench` pp512) | `IQ3_KS` 8700 · `IQ4_KS` 8614 (same tool) | **34.9 % / 34.3 % behind**; see `K2_RUNTIME_SPEEDUPS.md` |
 | | retention | **79.7 %** coding, 87.3 % HellaSwag | F16 = 100 % by construction | ARC 100 %, probes 106 %, GSM8K 104 % |
 | **Qwen2.5-3B**, 3.46 body bpw | perplexity | **9.0830** | `IQ4_KS` 9.1932 (4.22 bpw on disk) · `IQ3_KS` 42.32 | F16 8.6550 |
-| | prefill | **3,132 t/s** | `IQ3_KS` 4797 · `IQ4_KS` 4799 | **34.7 % behind** (was 62.0 %) |
-| | decode | **113.7 t/s** | `IQ3_KS` 123.9 · `IQ4_KS` 122.6 | **8.2 % behind** (was 24.8 %) |
+| | prefill | **3,132 t/s** (`llama-bench` pp512) | `IQ3_KS` 4797 · `IQ4_KS` 4799 (same tool) | **34.7 % behind** |
+| | decode | **113.7 t/s** (`llama-bench` tg128) | `IQ3_KS` 123.9 · `IQ4_KS` 122.6 (same tool) | **8.2 % behind** |
 | | retention | **84.8 %** (252/297) | F16 = 100 % | |
 
 At a matched body rate the format is ~20 % better in perplexity than the 3-bit k-quant, and against
@@ -50,8 +50,8 @@ specialisation. Porting it to the R16 pattern is future work, not a claim that i
 
 **Honest limits.**
 
-- **Prefill is ~35 % behind** same-model int8 types (it was 62 % before the `k2-speed` branch,
-  `K2_RUNTIME_SPEEDUPS.md`). It is the shipped kernel, not the format:
+- **Prefill is ~35 % behind** same-model int8 types, measured with one tool in one session
+  (`K2_RUNTIME_SPEEDUPS.md`). It is the shipped kernel, not the format:
   removing the trellis decode entirely moves pp512 by 16 %. An int8 `mma.sync` path was written and is
   **not correct** (one staging bug left); it is not in this PR and not claimed.
 - **Decode is 6–9 % behind** while reading ~21 % fewer body bits — a real trade.

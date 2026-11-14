@@ -811,8 +811,9 @@ reaches $327.92\pm0.68$ t/s on the $0.5$B seat ($92\%$ of our $357$ t/s gate tar
 a well-tuned IQ3\_KS build at a lower rate), with CUDA graphs worth $23\%$. On the model this paper
 is about --- $1.5$B at $3.34\bpw$, $722$\,MB of weights per token --- the same kernels deliver
 \textbf{$202.7\pm0.9$ t/s}, i.e.\ $\approx147$\,GB/s and $84\%$ of the $175$\,GB/s isolated GEMV
-ceiling this card reaches (the decode figures here and below are post-\texttt{k2-speed}, twelve kernel
-commits applied after the runtime described above: $174$-$176$\,t/s before them).
+ceiling this card reaches, measured with \texttt{llama-bench} tg128 (the $175.5\pm0.4$ figure this
+section previously carried was read from the serving stack's slot counters on the pre-\texttt{k2-speed}
+build; the two paths differ by sampling overhead and are not interchangeable).
 Against the same model re-quantized with the fork's own types, the shipped kernels are $1.54$x behind
 \texttt{IQ3\_KS} and $1.52$x behind \texttt{IQ4\_KS} on prefill (a $34.9\%$ / $34.3\%$ throughput
 deficit, against $61.6\%$ before \texttt{k2-speed}) and $1.06$x / $1.15$x \emph{ahead} on decode ---
