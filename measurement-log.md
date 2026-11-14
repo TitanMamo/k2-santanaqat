@@ -1192,3 +1192,33 @@ Dropped from the evidence tarball: `waterfill_bound.json` (err_kl = 0.0 and gain
 ### PR history rewritten
 
 `abba0d50` (subject claimed a trellis-layout change; the diff was a 7-line `K2_PRE_TOKENIZER` override) -> reworded to *"convert: allow overriding the BPE pre-tokenizer hash"* with the honest body; `32a95005`'s author email `titan@TitanPC.fritz.box` -> the GitHub noreply address. All ten commits now carry the same author, the tree is byte-identical to the pre-rewrite state (`git diff backup/pre-cosmetic HEAD` empty), and the branch was force-pushed (`9849e9fb`).
+
+---
+
+## CORRECTION 2026-11-14 — the 20-chunk window
+
+Every perplexity delta above measured with `--chunks 20` scores **5,100 tokens = 1.7 % of
+`wiki.test.raw`** (the harness scores only the last 255 tokens of each 512-token window). On
+Qwen2.5-7B that window over-reads quantisation damage by ~2.3x, because the damage is concentrated
+in chunks 3-11 (one Wikipedia article):
+
+| chunks | 7B f16 | 7B K2 3.354 bpw | delta | nats +/- SE (paired) |
+|---:|---:|---:|---:|---:|
+| 20 | 6.2321 | 6.7842 | +8.86 % | 0.085 +/- 0.016 |
+| 40 | 5.7765 | 6.1045 | +5.68 % | 0.055 +/- 0.010 |
+| 80 | 6.7890 | 7.0513 | **+3.86 %** | **0.038 +/- 0.005** |
+
+The 1.5B control moves far less (+2.71 % -> +2.26 %), which is why the artefact stayed invisible while
+only small models were being measured. See `PROTOCOL.md`; new measurements use `--chunks 80` minimum.
+
+Two further facts established the same day, both by measurement rather than argument:
+
+- **`-ngl` is exact**: Qwen2.5-7B f16 measured 6.2321 at `-ngl 0` and 6.2321 at `-ngl 20` (identical
+  error bars). Partial offload moves tensors, not arithmetic.
+- **The runtime is faithful**: folding the full runtime expression into plain f16 weights and
+  measuring that model gives 6.7833 vs the pack's 6.7842 (`+0.039 %`). `pipeline/k2_exl3_dequant.py`
+  reproduces the check; `pipeline/k2_tensor_audit.py` gives the per-tensor rfn.
+
+A real 7B sensitivity measurement (cloud A10, f16) is in `pipeline/qwen7b_3.18bpw/`: per-tensor S is
+0.24x the 1.5B values previously borrowed for this model, and the depth profile is inverted (early
+layers 0.10-0.20x, last layers 1.0-1.7x).

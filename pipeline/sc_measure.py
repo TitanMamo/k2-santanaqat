@@ -135,18 +135,25 @@ def main():
     ap.add_argument("--levels", default="0.30,0.15")
     ap.add_argument("--device", default="cpu")
     ap.add_argument("--max-tensors", type=int, default=0)
+    ap.add_argument("--include-head", action="store_true",
+                    help="also measure lm_head (389M params at 4B: 3 GB of fp32 scratch; its rate comes from head_bits anyway)")
     ap.add_argument("--selftest", action="store_true")
     args = ap.parse_args()
     if args.selftest:
         selftest()
         return
     from transformers import AutoModelForCausalLM, AutoTokenizer
-    tok = AutoTokenizer.from_pretrained(args.model)
-    model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=torch.float16)
+    from hf_compat import patch_tied_weights_keys   # list-style _tied_weights_keys (Spark2_5)
+    patch_tied_weights_keys()
+    tok = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
+    model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=torch.float16,
+                                            trust_remote_code=True)
     model.to(args.device)
     text = open(args.text).read()
     rows = build_rows(tok, text, args.rows, args.length, args.device)
     targets = collect_targets(model)
+    if not args.include_head:   # never used by the allocator; OOMs on 4B-class vocabs
+        targets = [(n, m) for n, m in targets if not n.endswith('lm_head')]
     if args.max_tensors:
         targets = targets[:args.max_tensors]
     levels = [float(x) for x in args.levels.split(",")]

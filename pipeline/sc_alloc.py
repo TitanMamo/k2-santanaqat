@@ -53,7 +53,7 @@ def tie_groups(names, tie_spec):
 
 
 def allocate(S, numel, menu, budget_bpw, anchors, alpha=2.0, ratio=1.96,
-             alpha_low=None, tie_spec=""):
+             alpha_low=None, tie_spec="", att_max=None):
     names = list(S.keys())
     tmap = tie_groups(names, tie_spec)
     groups = defaultdict(list)
@@ -68,12 +68,24 @@ def allocate(S, numel, menu, budget_bpw, anchors, alpha=2.0, ratio=1.96,
     spent = kmin * sum_numel
     assert spent <= budget, f"budget {budget_bpw} below menu min {kmin}"
 
+    ATT = ("q_proj", "k_proj", "v_proj", "out_proj", "o_proj")
+
+    def gkmax(g):
+        # optional cap on the attention bitrate: the controlled experiment in
+        # K2_SESSION_2026-10-25_paper.md measured attention at the recipe's bits as free
+        # (<=0.048 PPL at 60 ch), while the SC model charges it ~30% of the predicted KLD.
+        if att_max is None:
+            return kmax
+        if all(n.rsplit(".", 1)[-1] in ATT for n in groups[g]):
+            return max(kmin, min(kmax, att_max))
+        return kmax
+
     def gkld(g, kk):
         return sum(kld_at(S[n], anchors, n, kk, alpha, ratio, alpha_low) for n in groups[g])
 
     heap = []
     for i, g in enumerate(gkeys):
-        if kmax > kmin:
+        if gkmax(g) > kmin:
             gain = gkld(g, kmin) - gkld(g, kmin + 1)
             heapq.heappush(heap, (-gain / gnumel[i], i, kmin + 1))
     while heap:
@@ -82,7 +94,7 @@ def allocate(S, numel, menu, budget_bpw, anchors, alpha=2.0, ratio=1.96,
             continue
         k[gkeys[i]] = nk
         spent += gnumel[i]
-        if nk < kmax:
+        if nk < gkmax(gkeys[i]):
             gain = gkld(gkeys[i], nk) - gkld(gkeys[i], nk + 1)
             heapq.heappush(heap, (-gain / gnumel[i], i, nk + 1))
 
@@ -98,7 +110,7 @@ def allocate(S, numel, menu, budget_bpw, anchors, alpha=2.0, ratio=1.96,
         cands.sort()
         best = None
         for i, g in enumerate(gkeys):
-            if k[g] >= kmax:
+            if k[g] >= gkmax(g):   # per-group cap (--att-max), not the global menu max
                 continue
             gain = gkld(g, k[g]) - gkld(g, k[g] + 1)
             need = gnumel[i] - leftover
@@ -187,6 +199,8 @@ def main():
     ap.add_argument("--anchor", default="2:0.292")
     ap.add_argument("--rfn-ref", default=None)
     ap.add_argument("--tie", default="q_proj+k_proj+v_proj,gate_proj+up_proj")
+    ap.add_argument("--att-max", type=int, default=None,
+                    help="cap the attention (q/k/v/out) bitrate; freed bits go to the MLP")
     ap.add_argument("--selftest", action="store_true")
     args = ap.parse_args()
     if args.selftest:
@@ -198,7 +212,8 @@ def main():
         anchors["__default__"] = (int(ak), float(ar))
     menu = [int(x) for x in args.menu.split(",")]
     res = allocate(S, numel, menu, args.bpw, anchors, alpha=args.alpha,
-                   ratio=args.ratio, alpha_low=args.alpha_low, tie_spec=args.tie)
+                   ratio=args.ratio, alpha_low=args.alpha_low, tie_spec=args.tie,
+                   att_max=args.att_max)
     res["model"] = d.get("model")
     with open(args.out, "w") as f:
         json.dump(res, f, indent=2)

@@ -172,8 +172,12 @@ class ReplayAdapter:
             else:
                 h = batch_in
             for layer in self.layers[start:]:
-                h = layer(h, attention_mask=am, position_embeddings=pe,
-                          position_ids=pi, past_key_values=None, use_cache=False)
+                out = layer(h, attention_mask=am, position_embeddings=pe,
+                            position_ids=pi, past_key_values=None, use_cache=False)
+                # transformers <=4.46 returns a 1-tuple from a decoder layer, newer versions
+                # return the tensor; both must replay identically (a tuple here made the
+                # final RMSNorm fail with "'tuple' object has no attribute 'dtype'").
+                h = out[0] if isinstance(out, (tuple, list)) else out
             h = self.core.norm(h[:, -self.suffix:, :])
             return self.model.lm_head(h).float()
 
@@ -186,6 +190,17 @@ def _kl_cpu(clean_cpu, lg_gpu):
 
 def _kl_cpu_batch(clean_cpu, lg_gpu):
     return kl_last_batch(clean_cpu, lg_gpu.cpu())
+
+
+def _kl_cpu_batch_scaled(clean_cpu, lg_gpu, B):
+    """Same as _kl_cpu_batch, but weights the result by the batch's row count.
+
+    Only --row-batch all (and the rows=1 case, which is forced into it) produces
+    one entry per *batch* of B rows while the aggregation divides by n_rows, so
+    the scale has to be applied here.  It must happen inside the worker: the
+    caller used to do `pool.submit(...) * g["B"]`, which raises
+    `TypeError: unsupported operand type(s) for *: 'Future' and 'int'`."""
+    return _kl_cpu_batch(clean_cpu, lg_gpu) * B
 
 
 def unit_noise(shape, device, cache):
@@ -347,7 +362,7 @@ def measure_stream(model, rows, targets, levels, device="cpu", suffix=16,
                         if kl_on_gpu:
                             kl_rows.append(kl_last_batch(g["logits"], lg) * g["B"])
                         elif pool is not None:
-                            kl_rows.append(pool.submit(_kl_cpu_batch, g["logits_cpu"], lg) * g["B"])
+                            kl_rows.append(pool.submit(_kl_cpu_batch_scaled, g["logits_cpu"], lg, g["B"]))
                         else:
                             kl_rows.append(kl_last_batch(g["logits_cpu"], lg.cpu()) * g["B"])
                     else:
